@@ -162,7 +162,21 @@ body {
         button:hover {
             filter: brightness(1.1);
         }
-    </style>
+   @media (max-width: 800px) {
+    .image-area {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 520px) {
+    .image-area {
+        grid-template-columns: 1fr;
+    }
+
+    .card img {
+        height: 220px;
+    }
+} </style>
 </head>
 <body>
 
