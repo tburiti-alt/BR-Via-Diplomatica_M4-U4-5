@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atividade: Feira de Artesanato</title>
+    <style>
+        :root {
+            --brand-color: #4f694d;
+            --success: #27ae60;
+            --error: #c0392b;
+            --bg: #ffffff;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            width: 100vw;
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--bg);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #announcer {
+            padding: 8px;
+            font-weight: bold;
+            color: #333;
+            font-size: 1.1rem;
+            text-align: center;
+            background: #fff;
+            border-bottom: 1px solid #eee;
+        }
+
+        .image-area {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 10px;
+            flex: 1;
+            padding: 10px;
+            overflow: hidden;
+        }
+
+        .card {
+            background: white;
+            padding: 5px;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #eee;
+            height: 95%;
+        }
+
+        .card img {
+            width: 100%;
+            height: 70%;
+            object-fit: cover;
+            border-radius: 4px;
+            pointer-events: none;
+        }
+
+        .drop-zone {
+            width: 100%;
+            flex: 1;
+            margin-top: 4px;
+            border: 2px dashed #ccc;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            font-weight: bold;
+            background: #fafafa;
+            text-align: center;
+            color: #555;
+        }
+
+        .bank {
+            background: #f4f4f4;
+            border-top: 2px solid #ddd;
+            padding: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            align-items: center;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+
+        .tag {
+            padding: 8px 15px;
+            background: var(--brand-color);
+            color: white;
+            border-radius: 6px;
+            cursor: grab;
+            font-size: 1rem;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            white-space: nowrap;
+        }
+
+        .tag.dragging {
+            opacity: 0.5;
+        }
+
+        .tag.placed {
+            display: none;
+        }
+
+        .drop-zone.over {
+            border-color: var(--brand-color);
+            background: #f0f5ef;
+        }
+
+        .drop-zone.correct-final {
+            border: 3px solid var(--success);
+            background: #eafaf1;
+            color: var(--success);
+        }
+
+        .drop-zone.error-final {
+            border: 3px solid var(--error);
+            background: #fdf2f2;
+            color: var(--error);
+        }
+
+        .controls {
+            padding: 10px;
+            background: white;
+            border-top: 1px solid #ddd;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        button {
+            padding: 10px 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            border-radius: 6px;
+            background: var(--brand-color);
+            color: white;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            filter: brightness(1.1);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="announcer">Arraste os nomes para as imagens correspondentes:</div>
+
+    <div class="image-area" id="imageGrid"></div>
+
+    <div class="bank" id="nameBank"></div>
+
+    <div class="controls">
+        <button onclick="verifyAnswers()">VERIFICAR RESPOSTAS</button>
+        <button style="background:#666" onclick="resetGame()">REINICIAR</button>
+    </div>
+
+    <script>
+        const items = [
+            {
+                id: '1',
+                name: 'Estátuas de barro',
+                img: 'https://fsi-ex-omis.box.com/s/hafbwemj1jp4kw83stpbeb1asvpqow8h'
+            },
+            {
+                id: '2',
+                name: 'A escultura de madeira',
+                img: 'https://fsi-ex-omis.box.com/s/190z9fiwrh86nifzvqv4w3b6g7oacd5c'
+            },
+            {
+                id: '3',
+                name: 'Quadros em madeira',
+                img: 'https://fsi-ex-omis.box.com/s/omz44rqa4cusslj7so0sytvg349qtddh'
+            },
+            {
+                id: '4',
+                name: 'A bijuteria artesanal',
+                img: 'https://fsi-ex-omis.box.com/s/txore2ew9be9ys0pnf6b3jc6modk744q'
+            },
+            {
+                id: '5',
+                name: 'Bolsas com bordado',
+                img: 'https://fsi-ex-omis.box.com/s/0ua27n8d31jiuwg3fxt2smdm8n49ohlp'
+            },
+            {
+                id: '6',
+                name: 'Toalhas de renda',
+                img: 'https://fsi-ex-omis.box.com/s/lmzhmtmtj79xv4dtxirmcytztpmvp449'
+            },
+            {
+                id: '7',
+                name: 'Cestos de palha',
+                img: 'https://fsi-ex-omis.box.com/s/icem36y6p8y8lg70x18mwdi5f331n7xu'
+            },
+            {
+                id: '8',
+                name: 'Brinquedos de madeira',
+                img: 'https://fsi-ex-omis.box.com/s/34suihqils5m2v0ax2xz5u0emcbdn5cj'
+            },
+            {
+                id: '9',
+                name: 'Sandálias e bolsa de couro',
+                img: 'https://fsi-ex-omis.box.com/s/z9yfme1qblakav95vq72alf9o0tolxji'
+            }
+        ];
+
+        function renderGame() {
+            const imageGrid = document.getElementById('imageGrid');
+            const nameBank = document.getElementById('nameBank');
+
+            imageGrid.innerHTML = '';
+            nameBank.innerHTML = '';
+
+            items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'card';
+                div.innerHTML = `
+                    <img src="${item.img}" alt="${item.name}">
+                    <div class="drop-zone" data-correct-id="${item.id}">?</div>
+                `;
+                imageGrid.appendChild(div);
+            });
+
+            [...items]
+                .sort(() => Math.random() - 0.5)
+                .forEach(item => {
+                    const tag = document.createElement('div');
+
+                    tag.className = 'tag';
+                    tag.draggable = true;
+                    tag.innerText = item.name;
+                    tag.dataset.id = item.id;
+
+                    tag.addEventListener('dragstart', e => {
+                        e.dataTransfer.setData('text/plain', item.id);
+                        tag.classList.add('dragging');
+                    });
+
+                    tag.addEventListener('dragend', () => {
+                        tag.classList.remove('dragging');
+                    });
+
+                    nameBank.appendChild(tag);
+                });
+
+            setupDropZones();
+        }
+
+        function setupDropZones() {
+            document.querySelectorAll('.drop-zone').forEach(zone => {
+                zone.addEventListener('dragover', e => {
+                    e.preventDefault();
+                    zone.classList.add('over');
+                });
+
+                zone.addEventListener('dragleave', () => {
+                    zone.classList.remove('over');
+                });
+
+                zone.addEventListener('drop', e => {
+                    e.preventDefault();
+                    zone.classList.remove('over');
+
+                    const draggedId = e.dataTransfer.getData('text/plain');
+
+                    if (zone.dataset.currentId) {
+                        const previousTag = document.querySelector(
+                            `.tag[data-id="${zone.dataset.currentId}"]`
+                        );
+
+                        if (previousTag) {
+                            previousTag.classList.remove('placed');
+                        }
+                    }
+
+                    const itemData = items.find(item => item.id === draggedId);
+
+                    if (!itemData) {
+                        return;
+                    }
+
+                    zone.innerText = itemData.name;
+                    zone.dataset.currentId = draggedId;
+                    zone.classList.remove('correct-final', 'error-final');
+
+                    const draggedTag = document.querySelector(
+                        `.tag[data-id="${draggedId}"]`
+                    );
+
+                    if (draggedTag) {
+                        draggedTag.classList.add('placed');
+                    }
+                });
+            });
+        }
+
+        function verifyAnswers() {
+            let correctCount = 0;
+
+            document.querySelectorAll('.drop-zone').forEach(zone => {
+                zone.classList.remove('correct-final', 'error-final');
+
+                if (zone.dataset.currentId === zone.dataset.correctId) {
+                    zone.classList.add('correct-final');
+                    correctCount++;
+                } else if (zone.dataset.currentId) {
+                    zone.classList.add('error-final');
+                }
+            });
+
+            const announcer = document.getElementById('announcer');
+
+            if (correctCount === items.length) {
+                announcer.innerText = 'Perfeito! 🎉';
+                announcer.style.color = 'var(--success)';
+            } else {
+                announcer.innerText = `Acertos: ${correctCount} de ${items.length}`;
+                announcer.style.color = 'var(--error)';
+            }
+        }
+
+        function resetGame() {
+            renderGame();
+
+            const announcer = document.getElementById('announcer');
+            announcer.innerText = 'Arraste os nomes para as imagens correspondentes:';
+            announcer.style.color = '#333';
+        }
+
+        renderGame();
+    </script>
+</body>
+</html>
