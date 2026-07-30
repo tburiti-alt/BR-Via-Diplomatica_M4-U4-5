@@ -46,15 +46,12 @@ body {
             border-bottom: 1px solid #eee;
         }
 
-        .image-area {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            grid-template-rows: repeat(3, 1fr);
-            gap: 10px;
-            flex: 1;
-            padding: 10px;
-            overflow: hidden;
-        }
+       .image-area {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    padding: 12px;
+}
 
         .card {
             background: white;
